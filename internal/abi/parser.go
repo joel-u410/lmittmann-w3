@@ -202,7 +202,9 @@ func (p *parser) parseTupleType() (*abi.Type, string, error) {
 	// parse name
 	next := p.next()
 	if next.Typ != itemTypeID {
-		return nil, "", fmt.Errorf(`unexpected %s, want name`, next)
+		// no name given; put the token back and make up a fake name
+		p.backup()
+		return typ, fmt.Sprintf("__tuple%d", p.i), nil
 	}
 
 	return typ, next.Val, nil
