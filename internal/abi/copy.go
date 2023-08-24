@@ -135,6 +135,26 @@ func set(dst, src reflect.Value) error {
 	return nil
 }
 
+func setSliceFromStruct(dst, src reflect.Value) error {
+	if dst.IsNil() && dst.Kind() == reflect.Pointer {
+		dst = reflect.New(dst.Type().Elem())
+	}
+	if dst.Kind() == reflect.Pointer {
+		dst.Elem().Set(reflect.MakeSlice(dst.Elem().Type(), src.NumField(), src.NumField()))
+	} else {
+		dst.Set(reflect.MakeSlice(dst.Type(), src.NumField(), src.NumField()))
+	}
+
+	for i := 0; i < src.NumField(); i++ {
+		if dst.Kind() == reflect.Pointer {
+			rCopy(dst.Elem().Index(i), src.Field(i))
+		} else {
+			rCopy(dst.Index(i), src.Field(i))
+		}
+	}
+	return nil
+}
+
 func setStruct(dst, src reflect.Value) error {
 	if dst.Kind() == reflect.Pointer {
 		if dst.IsNil() {
@@ -144,6 +164,11 @@ func setStruct(dst, src reflect.Value) error {
 	}
 
 	st, dt := src.Type(), dst.Type()
+
+	// if destination is a slice, copy fields from struct to slice in order
+	if dst.Kind() == reflect.Slice || (dst.Kind() == reflect.Pointer && dst.Elem().Kind() == reflect.Slice) {
+		return setSliceFromStruct(dst, src)
+	}
 
 	// field tag mapping (tags take precedence over names)
 	srcFields := make(map[string]reflect.StructField)
