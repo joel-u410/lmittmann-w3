@@ -304,6 +304,18 @@ func TestFuncDecodeArgs(t *testing.T) {
 			}},
 		},
 		{
+			// https://github.com/lmittmann/w3/issues/67
+			Func:  w3.MustNewFunc("test((address, uint256))", ""),
+			Input: w3.B("0xba71720c000000000000000000000000000000000000000000000000000000000000c0fe000000000000000000000000000000000000000000000000000000000000002a"),
+			Args:  []any{&[]any{}},
+			WantArgs: []any{
+				&[]any{
+					w3.A("0x000000000000000000000000000000000000c0Fe"),
+					*big.NewInt(42),
+				},
+			},
+		},
+		{
 			Func:  w3.MustNewFunc("test((address arg0, uint256 arg1))", ""),
 			Input: w3.B("0xba71720c000000000000000000000000000000000000000000000000000000000000c0fe000000000000000000000000000000000000000000000000000000000000002a"),
 			Args:  []any{new(tupleWithWrongOrder)},
